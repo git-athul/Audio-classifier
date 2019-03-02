@@ -1,0 +1,5 @@
+*.py~
+.cache
+__pycache__
+*.pyc
+audiodir
