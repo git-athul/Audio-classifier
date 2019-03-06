@@ -42,6 +42,34 @@ def process_file(file_name):
     info = ad.lookup(config.apikey, fingerprint, duration)
     return info
 
+def suggestions(rcd, style):
+    "Returns top 4 name suggestions"
+    names = {}
+    for i, _ in enumerate(rcd):
+        if i == 4:
+            break
+        title = rcd[i]['title']
+        artst = ""
+        if style:
+            artst = artists(rcd[i]['artists']) + ' - '
+        names[i] = artst + title + '.mp3'
+
+        print("({}): {}".format(i, names[i]))
+    print("(9): 'SKIP THIS FILE'")
+    return names
+
+def artists(rcd_artst):
+    "Returns artists of the song"
+    pos = len(rcd_artst) -1
+    artst = [rcd_artst[pos]['name']]
+    while pos != 0:
+        artst.append(rcd_artst[pos-1]['joinphrase'])
+        artst.append(rcd_artst[pos-1]['name'])
+        pos -= 1
+    artst.reverse()
+    return "".join(artst)
+
+
 def main():
     "Renames the mp3 files based on the data from acoustid"
     audio_path, combo_style = call_parser()
@@ -50,19 +78,21 @@ def main():
     for name in audio_list:
         n_path = join(audio_path, name)
         rst = process_file(n_path)
-        # print(rst)
         try:
-            title = rst['results'][0]['recordings'][0]['title']
-            if combo_style:
-                artst = rst['results'][0]['recordings'][0]['artists'][0]['name']
-                rename = artst + ' - ' + title + '.mp3'
+            record = rst['results'][0]['recordings']
+            n_options = suggestions(record, combo_style)
+            choice = int(input('> '))
+            if choice == 9:
+                print("Skipped '{}'\n".format(name))
+                continue
             else:
-                rename = title + '.mp3'
+                rename = n_options[choice]
+
             dst = join(audio_path, rename)
             os.rename(n_path, dst)
-            print("'{}' RENAMED AS '{}'".format(name, rename))
+            print("'{}' RENAMED AS '{}'\n".format(name, rename))
         except KeyError:
-            print("No recording data found for '{}'".format(name))
+            print("No recording data found for '{}'\n".format(name))
 
 if __name__ == "__main__":
     main()
