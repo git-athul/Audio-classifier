@@ -24,8 +24,8 @@ def call_parser():
     parser.add_argument('--style', default=False,
                         type=bool, action='store', nargs='?',
                         help="""
-                        If 'style' is False, renames will have
-                        title of song.  If 'style' is True, renames
+                        If 'style' is True, renames will have
+                        title of song.  If 'style' is False, renames
                         will be a combination of artists and title.
                         (default: False)
                         """)
@@ -50,7 +50,7 @@ def suggestions(rcd, style):
             break
         title = rcd[i]['title']
         artst = ""
-        if style:
+        if not style:
             artst = artists(rcd[i]['artists']) + ' - '
         names[i] = artst + title + '.mp3'
 
@@ -72,7 +72,7 @@ def artists(rcd_artst):
 
 def main():
     "Renames the mp3 files based on the data from acoustid"
-    audio_path, combo_style = call_parser()
+    audio_path, name_style = call_parser()
     audio_list = mp3files(audio_path)
 
     for name in audio_list:
@@ -80,7 +80,8 @@ def main():
         rst = process_file(n_path)
         try:
             record = rst['results'][0]['recordings']
-            n_options = suggestions(record, combo_style)
+            print("Rename '{}' as".format(name))
+            n_options = suggestions(record, name_style)
             choice = int(input('> '))
             if choice == 9:
                 print("Skipped '{}'\n".format(name))
