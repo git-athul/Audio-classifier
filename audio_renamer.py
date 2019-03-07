@@ -45,6 +45,7 @@ def process_file(file_name):
 def suggestions(rcd, style):
     "Returns top 4 name suggestions"
     names = {}
+    printer = []
     for i, _ in enumerate(rcd):
         if i == 4:
             break
@@ -54,9 +55,9 @@ def suggestions(rcd, style):
             artst = artists(rcd[i]['artists']) + ' - '
         names[i] = artst + title + '.mp3'
 
-        print("({}): {}".format(i, names[i]))
-    print("(9): 'SKIP THIS FILE'")
-    return names
+        printer.append("({}): {}".format(i, names[i]))
+    printer.append("(9): 'SKIP THIS FILE'")
+    return names, printer
 
 def artists(rcd_artst):
     "Returns artists of the song"
@@ -81,7 +82,8 @@ def main():
         try:
             record = rst['results'][0]['recordings']
             print("Rename '{}' as".format(name))
-            n_options = suggestions(record, name_style)
+            n_options, print_sugg = suggestions(record, name_style)
+            print("\n".join(print_sugg))
             choice = int(input('> '))
             if choice == 9:
                 print("Skipped '{}'\n".format(name))
