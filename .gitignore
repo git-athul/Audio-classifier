@@ -2,5 +2,7 @@
 .cache
 __pycache__
 *.pyc
-audiodir
+dirAudio
 config.py
+.coverage
+htmlcov
