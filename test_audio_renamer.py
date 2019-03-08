@@ -2,12 +2,12 @@ import audio_renamer
 
 def test_mp3files():
     rst = ["2.mp3", "Adele - Hello.mp3"]
-    assert audio_renamer.mp3files('./test_data/test_mp3') == rst
+    assert audio_renamer.mp3files('./test_data') == rst
 
 def test_process_file():
     # Fails: if API-key is missing or
     # if recording data is updated
-    mp3file = './test_data/test_mp3/2.mp3'
+    mp3file = './test_data/2.mp3'
     with open('./test_data/1.songdata')as f:
         rst = f.readline()
     assert str(audio_renamer.process_file(mp3file)) == rst[:-1]
