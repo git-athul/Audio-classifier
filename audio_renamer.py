@@ -8,6 +8,7 @@ import os
 from os.path import join
 import argparse as ap
 import acoustid as ad
+import getch
 
 def call_parser():
     "Returns audio directory and style of renaming"
@@ -35,9 +36,9 @@ def mp3files(path):
     "Returns mp3 files from the given directory."
     return [f for f in os.listdir(path) if ".mp3" in f]
 
-def external_api(fp, dur):
+def external_api(fingerprint, duration):
     "Looks up information about song in external API"
-    return ad.lookup('EXyveY7Q4B', fp, dur)
+    return ad.lookup('EXyveY7Q4B', fingerprint, duration)
 
 def process_file(file_name):
     "process a file and returns information about the audio."
@@ -73,6 +74,17 @@ def artists(rcd_artst):
     artst.reverse()
     return "".join(artst)
 
+def user_input(file_name, options):
+    "Asks for user input"
+    choice = int(getch.getch())
+    if choice == 9:
+        newname = False
+        printer = "Skipped '{}'\n".format(file_name)
+    else:
+        newname = options[choice]
+        printer = "'{}' RENAMED AS '{}'\n".format(file_name, newname)
+    return newname, printer
+
 
 def main():
     "Renames the mp3 files based on the data from acoustid"
@@ -87,16 +99,11 @@ def main():
             n_options, print_sugg = suggestions(record, name_style)
             print("Rename '{}' as".format(name))
             print("\n".join(print_sugg))
-            choice = int(input('> '))
-            if choice == 9:
-                print("Skipped '{}'\n".format(name))
-                continue
-            else:
-                rename = n_options[choice]
-
-            dst = join(audio_path, rename)
-            os.rename(n_path, dst)
-            print("'{}' RENAMED AS '{}'\n".format(name, rename))
+            rename, print_action = user_input(name, n_options)
+            if rename:
+                dst = join(audio_path, rename)
+                os.rename(n_path, dst)
+            print(print_action)
         except KeyError:
             print("No recording data found for '{}'\n".format(name))
 
