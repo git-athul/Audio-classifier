@@ -8,7 +8,6 @@ import os
 from os.path import join
 import argparse as ap
 import acoustid as ad
-import config   #contains API-key
 
 def call_parser():
     "Returns audio directory and style of renaming"
@@ -39,7 +38,7 @@ def mp3files(path):
 def process_file(file_name):
     "process a file and returns information about the audio."
     (duration, fingerprint) = ad.fingerprint_file(file_name)
-    info = ad.lookup(config.apikey, fingerprint, duration)
+    info = ad.lookup('EXyveY7Q4B', fingerprint, duration)
     return info
 
 def suggestions(rcd, style):
