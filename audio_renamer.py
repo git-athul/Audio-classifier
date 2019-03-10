@@ -35,11 +35,15 @@ def mp3files(path):
     "Returns mp3 files from the given directory."
     return [f for f in os.listdir(path) if ".mp3" in f]
 
+def external_api(fp, dur):
+    "Looks up information about song in external API"
+    return ad.lookup('EXyveY7Q4B', fp, dur)
+
 def process_file(file_name):
     "process a file and returns information about the audio."
     (duration, fingerprint) = ad.fingerprint_file(file_name)
-    info = ad.lookup('EXyveY7Q4B', fingerprint, duration)
-    return info
+    return external_api(fingerprint, duration)
+
 
 def suggestions(rcd, style):
     "Returns top 4 name suggestions"
@@ -80,8 +84,8 @@ def main():
         rst = process_file(n_path)
         try:
             record = rst['results'][0]['recordings']
-            print("Rename '{}' as".format(name))
             n_options, print_sugg = suggestions(record, name_style)
+            print("Rename '{}' as".format(name))
             print("\n".join(print_sugg))
             choice = int(input('> '))
             if choice == 9:
