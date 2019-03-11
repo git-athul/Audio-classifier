@@ -1,0 +1,67 @@
+
+* Introduction
+Improperly named audio files are great sorrow while enjoying the
+music. This project renames mp3 files in a selected directory as the
+user prefers with the help of AcoustID web service.
+
+
+* AcoustID
+[[https://acoustid.org/][AcoustID]] web service helps us to search our song in their audio
+database and get the details.  In order to use the web service from
+your application, you need to [[https://acoustid.org/new-application][register the application]] and collect the
+API key.
+
+
+* Background
+This project is broken down in the following parts:
+- Gets a list of mp3 files from the given directory
+- Makes fingerprints of mp3 files
+- Checks the fingerprint in the database and get details
+- Asks user suggestion to rename
+- Renames the mp3file based on user input
+
+Read more about the project in the [[https://students.thelycaeum.in/blog06-audio-renamer/][blog]].
+
+
+* Usage
+Requires python3.x 
+
+#+BEGIN_SRC
+ Renames mp3 files in a selected directory based on the data from
+ acoustid web service.
+
+positional arguments:
+  audio_path       file-path of the mp3 directory
+
+optional arguments:
+  -h, --help       show this help message and exit
+  --style [STYLE]  If 'style' is True, renames will have titles of the song. If
+                   'style' is False, renames will be a combination of artists
+                   and title. (default: False)
+#+END_SRC
+
+
+* Requirements
+Check 'requirements.txt' for dependencies
+  * Install them with:
+    #+BEGIN_SRC 
+    pip install -r requirements.txt    
+    #+END_SRC
+
+  * To add more dependencies, use pip and: 
+    #+BEGIN_SRC 
+    pip freeze > requirements.txt
+    #+END_SRC
+
+* Tests
+Tests can be run, once required dependencies are there. To test:
+#+BEGIN_SRC 
+pytest test_audio_renamer
+#+END_SRC
+
+To check coverage of these tests:
+#+BEGIN_SRC 
+pytest --cov=audio_renamer
+#+END_SRC
+
+- `test_audio_renamer.py` contains tests for `audio_renamer`. It has 63% coverage.
