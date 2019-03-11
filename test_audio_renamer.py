@@ -1,16 +1,9 @@
 import audio_renamer
 
 def test_mp3files():
-    rst = ["2.mp3", "Adele - Hello.mp3"]
+    rst = ["1.mp3"]
     assert audio_renamer.mp3files('./test_data') == rst
 
-def test_process_file():
-    # Fails: if API-key is missing or
-    # if recording data is updated
-    mp3file = './test_data/2.mp3'
-    with open('./test_data/1.songdata')as f:
-        rst = f.readline()
-    assert str(audio_renamer.process_file(mp3file)) == rst[:-1]
 
 def test_artists():
     data = [{'id': 'cc', 'name': 'Adele'}]
@@ -22,6 +15,7 @@ def test_artists():
     rst ="Skrillex & Diplo feat. Justin Bieber"
     assert audio_renamer.artists(data) == rst
 
+    
 def test_suggestions():
     data = [{'title': 'Hello', 'artists': [{'name': 'Adele'}]},
             {'title': 'Hello (radio edit)', 'artists': [{'name': 'Adele'}]},
@@ -52,5 +46,24 @@ def test_suggestions():
                '(2): Skrillex & Diplo feat. Justin Bieber - Where Are Ü Now.mp3',
                '(3): Adele - Hello.mp3', "(9): 'SKIP THIS FILE'"]
     assert audio_renamer.suggestions(data, False) == (names, printer)
+
     
+def test_user_input():
+    file_name = "fakename"
+    options = {0 : "name0",
+               1 : "name1",
+               2 : "name2" }
+
+    input_values = [0, 1, 2, 9]
+    output = [("name0", "'fakename' RENAMED AS 'name0'\n"),
+              ("name1", "'fakename' RENAMED AS 'name1'\n"),
+              ("name2", "'fakename' RENAMED AS 'name2'\n"),
+              (False, "Skipped 'fakename'\n")]
+    
+    def mock_input():
+        return input_values.pop(0)    
+    for i, _ in enumerate(output):
+        audio_renamer.getch.getch=mock_input    
+        assert audio_renamer.user_input(file_name, options) == output[i]
+
 
