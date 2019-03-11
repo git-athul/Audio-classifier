@@ -10,22 +10,24 @@ import argparse as ap
 import acoustid as ad
 import getch
 
+global apikey
+apikey = "EXyveY7Q4B"
+
 def call_parser():
     "Returns audio directory and style of renaming"
     parser = ap.ArgumentParser(description="""
-    Renames mp3 files in selected directory.
-    Renaming is based on the information collected from acoustid web
+    Renames mp3 files in a selected directory based on the data from acoustid web
     service.
     """)
     parser.add_argument('mp3dir', action='store',
                         metavar='audio_path',
-                        help='file-path of mp3 directory')
+                        help='file-path of the mp3 directory')
 
     parser.add_argument('--style', default=False,
                         type=bool, action='store', nargs='?',
                         help="""
                         If 'style' is True, renames will have
-                        title of song.  If 'style' is False, renames
+                        titles of the song.  If 'style' is False, renames
                         will be a combination of artists and title.
                         (default: False)
                         """)
@@ -36,14 +38,11 @@ def mp3files(path):
     "Returns mp3 files from the given directory."
     return [f for f in os.listdir(path) if ".mp3" in f]
 
-def external_api(fingerprint, duration):
-    "Looks up information about song in external API"
-    return ad.lookup('EXyveY7Q4B', fingerprint, duration)
 
 def process_file(file_name):
     "process a file and returns information about the audio."
     (duration, fingerprint) = ad.fingerprint_file(file_name)
-    return external_api(fingerprint, duration)
+    return ad.lookup(apikey, fingerprint, duration)
 
 
 def suggestions(rcd, style):
@@ -94,6 +93,12 @@ def main():
     for name in audio_list:
         n_path = join(audio_path, name)
         rst = process_file(n_path)
+        try:
+            if rst['error']:
+                print("Invalid API key")
+                break
+        except KeyError:
+            pass
         try:
             record = rst['results'][0]['recordings']
             n_options, print_sugg = suggestions(record, name_style)
