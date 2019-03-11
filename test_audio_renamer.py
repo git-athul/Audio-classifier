@@ -1,5 +1,5 @@
 import unittest
-import mock
+from unittest import mock
 import audio_renamer
 
 class TestMp3Files(unittest.TestCase):
