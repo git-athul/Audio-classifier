@@ -10,10 +10,15 @@ import argparse as ap
 import acoustid as ad
 import getch
 
-global apikey
-apikey = "EXyveY7Q4B"
 
-def call_parser():
+def load_apikey():
+    with open(".apikey") as f:
+        apikey = f.read().strip()
+        if apikey == "XXXXX":
+            raise Exception("You haven't configured the API key. Please read Readme")
+    return apikey
+
+def call_parser():  # pragma: no cover
     "Returns audio directory and style of renaming"
     parser = ap.ArgumentParser(description="""
     Renames mp3 files in a selected directory based on the data from acoustid web
@@ -87,6 +92,8 @@ def user_input(file_name, options):
 
 def main():
     "Renames the mp3 files based on the data from acoustid"
+    global apikey
+    apikey = load_apikey()
     audio_path, name_style = call_parser()
     audio_list = mp3files(audio_path)
 
