@@ -10,6 +10,7 @@ import argparse as ap
 import acoustid as ad
 import getch
 
+automation = None #This is a global variable and used for mock.patch in test
 
 def load_apikey():
     with open(".apikey") as f:
@@ -28,16 +29,22 @@ def call_parser():  # pragma: no cover
                         metavar='audio_path',
                         help='file-path of the mp3 directory')
 
-    parser.add_argument('--style', default=False,
-                        type=bool, action='store', nargs='?',
+    parser.add_argument('-n','--no-auto', action='store_false',
+                        dest="auto", default=True,
                         help="""
-                        If 'style' is True, renames will have
-                        titles of the song.  If 'style' is False, renames
-                        will be a combination of artists and title.
-                        (default: False)
+                        If '--no-auto' is used, asks user the suggestions
+                        for the renaming. Else, renames all songs with first choice.
+                        """)
+                        
+    parser.add_argument('-t','--title-style', default=False,
+                        dest="style", action='store_true',
+                        help="""
+                        If '--title-style' is used, renames will have
+                        titles of the song. Else, renames will be a
+                        combination of artists and title.
                         """)
     args = parser.parse_args()
-    return args.mp3dir, args.style
+    return args.mp3dir, args.auto, args.style
 
 def mp3files(path):
     "Returns mp3 files from the given directory."
@@ -62,8 +69,11 @@ def suggestions(rcd, style):
         if not style:
             artst = artists(rcd[i]['artists']) + ' - '
         names[i] = artst + title + '.mp3'
-
         printer.append("({}): {}".format(i, names[i]))
+
+        if automation:
+            break
+
     printer.append("(9): 'SKIP THIS FILE'")
     return names, printer
 
@@ -80,13 +90,18 @@ def artists(rcd_artst):
 
 def user_input(file_name, options):
     "Asks for user input"
-    choice = int(getch.getch())
-    if choice == 9:
-        newname = False
-        printer = "Skipped '{}'\n".format(file_name)
+    if not automation:
+        choice = int(getch.getch())
+        if choice == 9:
+            newname = False
+            printer = "Skipped '{}'".format(file_name)
+        else:
+            newname = options[choice]
+            printer = "'{}' RENAMED AS '{}'".format(file_name, newname)
     else:
-        newname = options[choice]
-        printer = "'{}' RENAMED AS '{}'\n".format(file_name, newname)
+        newname = options[0]
+        printer = "'{}' RENAMED AS '{}'".format(file_name, newname)
+        
     return newname, printer
 
 
@@ -94,7 +109,9 @@ def main():
     "Renames the mp3 files based on the data from acoustid"
     global apikey
     apikey = load_apikey()
-    audio_path, name_style = call_parser()
+
+    global automation
+    audio_path, automation, name_style = call_parser()
     audio_list = mp3files(audio_path)
 
     for name in audio_list:
@@ -109,15 +126,18 @@ def main():
         try:
             record = rst['results'][0]['recordings']
             n_options, print_sugg = suggestions(record, name_style)
-            print("Rename '{}' as".format(name))
-            print("\n".join(print_sugg))
+            if not automation:
+                print("\nRename '{}' as".format(name))
+                print("\n".join(print_sugg))
             rename, print_action = user_input(name, n_options)
             if rename:
                 dst = join(audio_path, rename)
                 os.rename(n_path, dst)
             print(print_action)
         except KeyError:
-            print("No recording data found for '{}'\n".format(name))
+            if not automation:
+                print('')
+            print("No recording data found for '{}'".format(name))
 
 if __name__ == "__main__":
     main()
