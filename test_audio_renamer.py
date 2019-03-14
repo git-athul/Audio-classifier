@@ -13,13 +13,15 @@ class TestMp3Files(unittest.TestCase):
 def test_artists():
     data = [{'id': 'cc', 'name': 'Adele'}]
     rst = "Adele"
-    assert audio_renamer.artists(data) == rst
+    with mock.patch('audio_renamer.automation', False):
+        assert audio_renamer.artists(data) == rst
 
     data = [{'joinphrase': ' & ', 'name': 'Skrillex'},
             {'joinphrase':' feat. ', 'name': 'Diplo'},
             {'name': 'Justin Bieber'}]
     rst = "Skrillex & Diplo feat. Justin Bieber"
-    assert audio_renamer.artists(data) == rst
+    with mock.patch('audio_renamer.automation', False):
+        assert audio_renamer.artists(data) == rst
 
 
 def test_suggestions():
@@ -41,7 +43,8 @@ def test_suggestions():
                '(1): Hello (radio edit).mp3',
                '(2): Where Are Ü Now.mp3',
                '(3): Hello.mp3', "(9): 'SKIP THIS FILE'"]
-    assert audio_renamer.suggestions(data, True) == (names, printer)
+    with mock.patch('audio_renamer.automation', False):
+        assert audio_renamer.suggestions(data, True) == (names, printer)
 
     names = {0: 'Adele - Hello.mp3',
              1: 'Adele - Hello (radio edit).mp3',
@@ -52,7 +55,8 @@ def test_suggestions():
                '(1): Adele - Hello (radio edit).mp3',
                '(2): Skrillex & Diplo feat. Justin Bieber - Where Are Ü Now.mp3',
                '(3): Adele - Hello.mp3', "(9): 'SKIP THIS FILE'"]
-    assert audio_renamer.suggestions(data, False) == (names, printer)
+    with mock.patch('audio_renamer.automation', False):
+        assert audio_renamer.suggestions(data, False) == (names, printer)
 
 
 def test_user_input():
@@ -62,13 +66,14 @@ def test_user_input():
                2 : "name2"}
 
     input_values = [0, 1, 2, 9]
-    output = [("name0", "'fakename' RENAMED AS 'name0'\n"),
-              ("name1", "'fakename' RENAMED AS 'name1'\n"),
-              ("name2", "'fakename' RENAMED AS 'name2'\n"),
-              (False, "Skipped 'fakename'\n")]
+    output = [("name0", "'fakename' RENAMED AS 'name0'"),
+              ("name1", "'fakename' RENAMED AS 'name1'"),
+              ("name2", "'fakename' RENAMED AS 'name2'"),
+              (False, "Skipped 'fakename'")]
 
     def mock_input():
         return input_values.pop(0)
     for i, _ in enumerate(output):
         audio_renamer.getch.getch = mock_input
-        assert audio_renamer.user_input(file_name, options) == output[i]
+        with mock.patch('audio_renamer.automation', False):
+            assert audio_renamer.user_input(file_name, options) == output[i]
