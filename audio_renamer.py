@@ -64,10 +64,12 @@ def suggestions(rcd, style):
     for i, _ in enumerate(rcd):
         if i == 4:
             break
-        title = rcd[i]['title']
+        if 'title' in rcd[i].keys():
+            title = rcd[i]['title']
         artst = ""
         if not style:
-            artst = artists(rcd[i]['artists']) + ' - '
+            if 'artists' in rcd[i].keys():
+                artst = artists(rcd[i]['artists']) + ' - '
         names[i] = artst + title + '.mp3'
         printer.append("({}): {}".format(i, names[i]))
 
@@ -117,13 +119,11 @@ def main():
     for name in audio_list:
         n_path = join(audio_path, name)
         rst = process_file(n_path)
-        try:
-            if rst['error']:
-                print("Invalid API key")
+        if rst['status'] == 'error':
+            if 'message' in rst['error'].keys():
+                print(rst['error']['message'])
                 break
-        except KeyError:
-            pass
-        try:
+        if 'recordings' in rst['results'][0].keys():
             record = rst['results'][0]['recordings']
             n_options, print_sugg = suggestions(record, name_style)
             if not automation:
@@ -134,9 +134,9 @@ def main():
                 dst = join(audio_path, rename)
                 os.rename(n_path, dst)
             print(print_action)
-        except KeyError:
+        else:
             if not automation:
-                print('')
+                print('') #Line correction for non-automation mode
             print("No recording data found for '{}'".format(name))
 
 if __name__ == "__main__":
