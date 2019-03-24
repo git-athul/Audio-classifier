@@ -6,3 +6,4 @@ dirAudio
 config.py
 .coverage
 htmlcov
+.apikey
