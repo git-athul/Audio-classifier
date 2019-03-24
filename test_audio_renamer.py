@@ -13,18 +13,16 @@ class TestMp3Files(unittest.TestCase):
 def test_artists():
     data = [{'id': 'cc', 'name': 'Adele'}]
     rst = "Adele"
-    with mock.patch('audio_renamer.automation', False):
-        assert audio_renamer.artists(data) == rst
+    assert audio_renamer.artists(data) == rst
 
     data = [{'joinphrase': ' & ', 'name': 'Skrillex'},
             {'joinphrase':' feat. ', 'name': 'Diplo'},
             {'name': 'Justin Bieber'}]
     rst = "Skrillex & Diplo feat. Justin Bieber"
-    with mock.patch('audio_renamer.automation', False):
-        assert audio_renamer.artists(data) == rst
+    assert audio_renamer.artists(data) == rst
 
 
-def test_suggestions():
+def test_suggestions_title_style():
     data = [{'title': 'Hello', 'artists': [{'name': 'Adele'}]},
             {'title': 'Hello (radio edit)', 'artists': [{'name': 'Adele'}]},
             {'title': 'Where Are Ü Now', 'artists':
@@ -44,8 +42,27 @@ def test_suggestions():
                '(2): Where Are Ü Now.mp3',
                '(3): Hello.mp3', "(9): 'SKIP THIS FILE'"]
     with mock.patch('audio_renamer.automation', False):
+        #No-automation
         assert audio_renamer.suggestions(data, True) == (names, printer)
 
+    names = {0: 'Hello.mp3'}
+    printer = ['(0): Hello.mp3', "(9): 'SKIP THIS FILE'"]
+
+    with mock.patch('audio_renamer.automation', True):
+        #Automation
+        assert audio_renamer.suggestions(data, True) == (names, printer)
+
+
+def test_suggestions_combo_style():
+    data = [{'title': 'Hello', 'artists': [{'name': 'Adele'}]},
+            {'title': 'Hello (radio edit)', 'artists': [{'name': 'Adele'}]},
+            {'title': 'Where Are Ü Now', 'artists':
+             [{'joinphrase':' & ', 'name': 'Skrillex'},
+              {'joinphrase': ' feat. ', 'name':'Diplo'},
+            {'name': 'Justin Bieber'}]}, {'title': 'Hello', 'artists':
+            [{'name': 'Adele'}]}, {'title': 'Cry Baby', 'artists':
+            [{'name': 'Melanie Martinez'}]}]
+    
     names = {0: 'Adele - Hello.mp3',
              1: 'Adele - Hello (radio edit).mp3',
              2: 'Skrillex & Diplo feat. Justin Bieber - Where Are Ü Now.mp3',
@@ -56,6 +73,14 @@ def test_suggestions():
                '(2): Skrillex & Diplo feat. Justin Bieber - Where Are Ü Now.mp3',
                '(3): Adele - Hello.mp3', "(9): 'SKIP THIS FILE'"]
     with mock.patch('audio_renamer.automation', False):
+        #No-automation
+        assert audio_renamer.suggestions(data, False) == (names, printer)
+
+    names = {0: 'Adele - Hello.mp3'}
+    printer = ['(0): Adele - Hello.mp3', "(9): 'SKIP THIS FILE'"]
+    
+    with mock.patch('audio_renamer.automation', True):
+        #Automation
         assert audio_renamer.suggestions(data, False) == (names, printer)
 
 
@@ -76,4 +101,9 @@ def test_user_input():
     for i, _ in enumerate(output):
         audio_renamer.getch.getch = mock_input
         with mock.patch('audio_renamer.automation', False):
+            #No-automation
             assert audio_renamer.user_input(file_name, options) == output[i]
+
+    with mock.patch('audio_renamer.automation', True):
+        #Automation
+        assert audio_renamer.user_input(file_name, options) == output[0]
