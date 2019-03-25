@@ -12,8 +12,8 @@ import getch
 
 automation = None #This is a global variable and used for mock.patch in test
 
-def load_apikey():
-    with open(".apikey") as f:
+def load_apikey(filename='.apikey'):
+    with open(filename) as f:
         apikey = f.read().strip()
         if apikey == "XXXXX":
             raise Exception("You haven't configured the API key. Please read Readme")

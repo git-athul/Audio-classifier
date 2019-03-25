@@ -1,5 +1,9 @@
+import os
 import unittest
 from unittest import mock
+
+import pytest
+
 import audio_renamer
 
 class TestMp3Files(unittest.TestCase):
@@ -21,6 +25,14 @@ def test_artists():
     rst = "Skrillex & Diplo feat. Justin Bieber"
     assert audio_renamer.artists(data) == rst
 
+def test_load_apikey():
+    with open("/tmp/foo.txt", "w") as f:
+        f.write("XXXXX")
+    
+    with pytest.raises(Exception):
+        audio_renamer.load_apikey("/tmp/foo.txt")
+
+    os.unlink("/tmp/foo.txt")
 
 def test_suggestions_title_style():
     data = [{'title': 'Hello', 'artists': [{'name': 'Adele'}]},
