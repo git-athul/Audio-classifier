@@ -12,8 +12,8 @@ import getch
 
 automation = None #This is a global variable and used for mock.patch in test
 
-def load_apikey():
-    with open(".apikey") as f:
+def load_apikey(filename='.apikey'):
+    with open(filename) as f:
         apikey = f.read().strip()
         if apikey == "XXXXX":
             raise Exception("You haven't configured the API key. Please read Readme")
@@ -54,7 +54,11 @@ def mp3files(path):
 def process_file(file_name):
     "process a file and returns information about the audio."
     (duration, fingerprint) = ad.fingerprint_file(file_name)
-    return ad.lookup(apikey, fingerprint, duration)
+    resp = ad.lookup(apikey, fingerprint, duration)
+    if resp.get('status') == 'error':
+        if 'message' in resp['error']:
+            raise ValueError(resp['error']['message']
+    return resp['recordings']
 
 
 def suggestions(rcd, style):
@@ -107,7 +111,7 @@ def user_input(file_name, options):
     return newname, printer
 
 
-def main():
+def main(get_option=get_manual_option):
     "Renames the mp3 files based on the data from acoustid"
     global apikey
     apikey = load_apikey()
@@ -118,13 +122,9 @@ def main():
 
     for name in audio_list:
         n_path = join(audio_path, name)
-        rst = process_file(n_path)
-        if rst['status'] == 'error':
-            if 'message' in rst['error'].keys():
-                print(rst['error']['message'])
-                break
-        if 'recordings' in rst['results'][0].keys():
-            record = rst['results'][0]['recordings']
+        rst = get_recordings(n_path)
+        if 'recordings' in rst['results'][0].keys(): 
+            record = rst['results'][0]['recordings'] # These (['results'][0]['recordings']) are API details. Hide them.
             n_options, print_sugg = suggestions(record, name_style)
             if not automation:
                 print("\nRename '{}' as".format(name))
